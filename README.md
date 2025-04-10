@@ -1,0 +1,2 @@
+# thesis
+RAG optimized LLM
