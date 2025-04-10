@@ -1,2 +1,2 @@
-# thesis
-RAG optimized LLM
+# Thesis
+RAG-optimized LLM using XML files as external documents
