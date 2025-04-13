@@ -6,7 +6,7 @@ from tqdm import tqdm
 class ABBot:
     """
     Args:
-        retriever (Retriever): An instance of the Retriever class for document retrieval.
+        retrievr (Retriever): An instance of the Retriever class for document retrieval.
         llm (str): The name of the LM to use e.g "Gemma3:1b".
         embedding (str): The name of the embedding model to use e.g "mxbai-embed-large".
     """
@@ -86,7 +86,7 @@ class ABBot:
 
 
 
-persist_path = "C:\\Users\\SEJOFRE5\\OneDrive - ABB\\Code\\thesis\\chroma_semantic_chunk_mxbai_large"
+persist_path = "C:/Users/SEEDSAB/Desktop/Thesis/chroma_semantic_chunk_mxbai_large"
 retriever_tfidf = Retriever(db_path=persist_path, collection_name="langchain", method="tfidf")
 retriever_bm25 = Retriever(db_path=persist_path, collection_name="langchain", method="bm25")
 
