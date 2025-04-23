@@ -22,7 +22,7 @@ class ABBot:
          
     def _chat_(self, query):
             context = self.retriever.retrieve(query, top_k=3)
-
+            print(context)
             user_message = f"Context: {context}\n\nQuestion: {query}"
             self.chat_history.append({"role": "user", "content": user_message})
 
