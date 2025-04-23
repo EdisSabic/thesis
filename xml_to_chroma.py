@@ -3,6 +3,10 @@ import re
 from langchain_ollama import OllamaEmbeddings
 from langchain_chroma import Chroma
 from langchain.text_splitter import RecursiveCharacterTextSplitter
+import nltk
+nltk.download('punkt_tab')
+from nltk.tokenize import sent_tokenize
+from tqdm import tqdm
 
 def extract_text_from_xml(file_path):
     tree = ET.parse(file_path)
@@ -15,6 +19,7 @@ def extract_text_from_xml(file_path):
             text_parts.append(elem.text.strip())
 
     return "\n".join(text_parts)
+
 
 def clean_text(text):
     # Normalize quotes and dashes
@@ -58,11 +63,55 @@ def semantic_chunking(text, chunk_size=1600, overlap=100):
     chunks = splitter.split_text(text)
     return chunks
 
+def count_tokens(text):
+    return len(text.split()) * 1.3
+
+def token_semantic_chunk(text, max_tokens=512):
+    """
+    Splits input text into semantically coherent chunks based on sentence boundaries 
+    and estimated token limits, with awareness of document structure cues.
+
+    Tokenizes the input text into individual sentences using NLTK's 
+    sentence tokenizer. It then groups sentences into chunks without exceeding a specified 
+    maximum token count (`max_tokens`). Additionally, the chunking logic is aware of 
+    semantic boundaries — such as headings or document structure markers like "Section" 
+    or "Table" — which will force a new chunk to begin even if the token limit 
+    hasn't been reached yet.
+    """
+    sentences = sent_tokenize(text)
+    chunks = []
+    current_chunk = []
+    current_tokens = 0
+
+    for sentence in sentences:
+        # Semantic break conditions
+        if re.match(r'^(Section|Table)\b', sentence):
+            if current_chunk:
+                chunks.append(" ".join(current_chunk))
+                current_chunk = []
+                current_tokens = 0
+
+        sentence_tokens = count_tokens(sentence)
+
+        if current_tokens + sentence_tokens > max_tokens:
+            chunks.append(" ".join(current_chunk))
+            current_chunk = [sentence]
+            current_tokens = sentence_tokens
+        else:
+            current_chunk.append(sentence)
+            current_tokens += sentence_tokens
+
+    if current_chunk:
+        chunks.append(" ".join(current_chunk))
+
+    return chunks
+
+
 if __name__ == "__main__":
-    xml_file_3HAC032104 = "C:/Users/SEEDSAB\Desktop/files/3HAC032104 OM RobotStudio_a631_en/index.xml"
-    xml_file_3HAC065038 = "C:/Users/SEEDSAB\Desktop/files/3HAC065038 TRM RAPID RW 7_a631_en/index.xml"
-    xml_file_3HAC065040 = "C:/Users/SEEDSAB\Desktop/files/3HAC065040 RAPID Overview RW 7_a631_en/index.xml"
-    xml_file_3HAC065041 = "C:/Users/SEEDSAB\Desktop/files/3HAC065041 TRM System parameters RW 7_a631_en/index.xml"
+    xml_file_3HAC032104 = "C:/Users/SEEDSAB/Desktop/files/3HAC032104 OM RobotStudio_a631_en/index.xml"
+    xml_file_3HAC065038 = "C:/Users/SEEDSAB/Desktop/files/3HAC065038 TRM RAPID RW 7_a631_en/index.xml"
+    xml_file_3HAC065040 = "C:/Users/SEEDSAB/Desktop/files/3HAC065040 RAPID Overview RW 7_a631_en/index.xml"
+    xml_file_3HAC065041 = "C:/Users/SEEDSAB/Desktop/files/3HAC065041 TRM System parameters RW 7_a631_en/index.xml"
     xml_files = [
         xml_file_3HAC032104,
         xml_file_3HAC065038,
@@ -72,13 +121,13 @@ if __name__ == "__main__":
 
     embed_model = OllamaEmbeddings(model = "mxbai-embed-large")
 
-    for file_path in xml_files:
+    for file_path in tqdm(xml_files):
         raw_text = extract_text_from_xml(file_path)
         cleaned_text = clean_text(raw_text)
-        chunks = semantic_chunking(cleaned_text)
+        chunks = token_semantic_chunk(cleaned_text, max_tokens=512)
 
         print(f"File: {file_path.split('\\)[-2]')}")
         print(f"Total chunks: {len(chunks)}")
         
-        vector_store = Chroma(embedding_function=embed_model, persist_directory="./chroma_semantic_chunk_mxbai_large")
+        vector_store = Chroma(embedding_function=embed_model, persist_directory="./token_semantic_chunk_mxbai_large")
         vector_store.add_texts(chunks)
