@@ -1,40 +1,55 @@
-import numpy as np
-from sklearn.metrics.pairwise import cosine_similarity
-from transformers import AutoTokenizer, AutoModel
-import torch
+# pip install transformers torch scikit-learn
 
-# Load pre-trained model (any sentence embedding model works)
-model_name = 'sentence-transformers/all-MiniLM-L6-v2'
+from transformers import AutoTokenizer, AutoModel
+from sklearn.metrics.pairwise import cosine_similarity
+import torch
+import numpy as np
+
+# Use a base model that works locally with PyTorch
+model_name = "bert-base-uncased"
+
+# Load tokenizer and model
 tokenizer = AutoTokenizer.from_pretrained(model_name)
 model = AutoModel.from_pretrained(model_name)
 
-# Utility: encode and normalize vectors
-def encode_text(text_list):
-    tokens = tokenizer(text_list, padding=True, truncation=True, return_tensors='pt')
+# Encode text into embeddings with mean pooling
+def encode(texts):
+    tokens = tokenizer(texts, padding=True, truncation=True, return_tensors="pt")
     with torch.no_grad():
-        model_output = model(**tokens)
-    embeddings = model_output.last_hidden_state.mean(dim=1)  # mean pooling
-    return torch.nn.functional.normalize(embeddings, p=2, dim=1)
+        outputs = model(**tokens)
+    embeddings = outputs.last_hidden_state
+    # Mean pooling
+    attention_mask = tokens["attention_mask"]
+    mask = attention_mask.unsqueeze(-1).expand(embeddings.size()).float()
+    summed = torch.sum(embeddings * mask, 1)
+    counts = torch.clamp(mask.sum(1), min=1e-9)
+    mean_pooled = summed / counts
+    return mean_pooled
 
-# Sample inputs
+# Normalize the vectors (L2 norm)
+def normalize(vecs):
+    return torch.nn.functional.normalize(vecs, p=2, dim=1)
+
+# Input: questions, contexts, weights
 questions = ["What is a hash table?", "Explain merge sort."]
 contexts = [
     "A hash table is a data structure that maps keys to values for efficient lookup.",
     "Merge sort is a divide-and-conquer sorting algorithm."
 ]
-weights = [0.8, 0.6]  # Example context relevance weights
+weights = [0.8, 0.6]  # Context weights
 
-# Step 1: Encode all texts
-question_embs = encode_text(questions)
-context_embs = encode_text(contexts)
+# Encode
+question_embeddings = normalize(encode(questions))
+context_embeddings = normalize(encode(contexts))
 
-# Step 2: Apply weights to context embeddings
-weighted_context_embs = torch.stack([w * e for w, e in zip(weights, context_embs)])
+# Apply weights to context vectors
+weighted_contexts = torch.stack([weight * vec for weight, vec in zip(weights, context_embeddings)])
 
-# Step 3: Compute similarity matrix
-similarity_matrix = cosine_similarity(question_embs, weighted_context_embs)
+# Compute cosine similarity
+cos_sim = cosine_similarity(question_embeddings, weighted_contexts)
 
-# Step 4: Show results
+# Display results
+print("\nWeighted Cosine Similarity Matrix (Questions × Contexts):\n")
 for i, q in enumerate(questions):
     for j, c in enumerate(contexts):
-        print(f"Similarity(Q{i} <-> C{j}): {similarity_matrix[i][j]:.4f}")
+        print(f"Q{i+1} \"{q}\" <-> C{j+1}: {cos_sim[i][j]:.4f}")
