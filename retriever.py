@@ -61,9 +61,9 @@ class Retriever:
         return [(self.ids[i], self.documents[i], scores[i]) for i in top_indices]
 
 if __name__ == "__main__":
-    db_path = "C:/Users/SEEDSAB/Desktop/edis/thesis/chroma_semantic_chunk_mxbai_large"
+    db_path = "token_semantic_chunk_mxbai_large"
     collection_name = "langchain"
-    query = "In basic RAPID programming, what are the restrictions of Multitasking RAPID?"
+    query = "how do I move a robot linearly?"
 
 
     retriever = Retriever(db_path, collection_name, method="tfidf")
