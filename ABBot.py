@@ -125,7 +125,7 @@ if len(sys.argv) != 3:
     print("Exiting ABBot, please try again.")
     exit()
 
-db_path = "chroma_semantic_chunk_mxbai_large"
+db_path = "token_semantic_chunk_mxbai_large"
 
 retriever_method, llm_choice = sys.argv[1], sys.argv[2]
 retriever = Retriever(db_path=db_path, collection_name="langchain", method=retriever_method)
