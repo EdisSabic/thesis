@@ -4,7 +4,7 @@ from rank_bm25 import BM25Okapi
 import numpy as np
 
 class Retriever:
-    def __init__(self, db_path, collection_name, method ="tfidf"):
+    def __init__(self, db_path, collection_name, method):
         """
         Args: 
             db_path (str): Path to the ChromaDB database.
@@ -32,7 +32,7 @@ class Retriever:
         results = self.collection.get()
         self.documents = results['documents']
         self.ids = results['ids']
-        print(f"Loaded {len(self.documents)} documents from the ChromaDB.")
+        #print(f"Loaded {len(self.documents)} documents from the ChromaDB.")
 
     def _init_tfidf(self):
         self.vectorizer = TfidfVectorizer()
@@ -61,7 +61,7 @@ class Retriever:
         return [(self.ids[i], self.documents[i], scores[i]) for i in top_indices]
 
 if __name__ == "__main__":
-    db_path = ""
+    db_path = "C:/Users/SEEDSAB/Desktop/Thesis/chroma_semantic_chunk_mxbai_large"
     collection_name = "langchain"
     query = "In basic RAPID programming, what are the restrictions of Multitasking RAPID?"
 
