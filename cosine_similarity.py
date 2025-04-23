@@ -30,8 +30,8 @@ def encode(texts):
 def normalize(input):
     return torch.nn.functional.normalize(input, p=2, dim=1)
 
-# Integrate retrieval with cosine similarity
 
+# Integrate retrieval with cosine similarity
 def cosine_with_retrieval(query):
     # retrieve top context chunks
     contexts = retriever.retrieve(query, top_k=20)
@@ -45,7 +45,6 @@ def cosine_with_retrieval(query):
     for i in range(len(contexts)):
         weight = 1.0 - (i * 0.1)
         weights.append(weight)
-  
 
     # encode query + context
     query_embedding = normalize(encode([query]))
@@ -58,7 +57,6 @@ def cosine_with_retrieval(query):
         weighted_contexts.append(weighted_context)
 
     weighted_contexts = torch.stack(weighted_contexts)
-
 
     # compute cosine similarity
     cos_sim = cosine_similarity(query_embedding, weighted_contexts)
@@ -77,12 +75,6 @@ def cosine_with_retrieval(query):
         print(f"Context {rank} (Original Index {i+1})")
         print(f"Cosine Similarity: {score * 100:.2f} %")
         print(f"Context: {ctx}")
-
-def manually_test(query):
-    context_for_test = """Calibration No Pos Update Trust Revolution Counter Revolution Counter Lost Updated the value of the parameter Server Type FTP Client Communication I/O Network added to topic Communication: Enable on I/O Network Minor corrections in section Manipulator supervision K Released with RobotWare 7.7 Added the Type Move in Auto Added new action value for system parameter Action Verify Move Robot In Auto Added the new parameter Fast Device Startup Moved Type System Input Type System Output I/O System Controller Updated the Prerequisites Type System Input Updated the parameter Brake on Time Added limitation for number of instances of the types Robot Single Robot Information about Cross Connections removed from section Topic I/O System Reference added to Application Manual I/O Engineering"""
-    
-    
-
 
 query = "How do I move a robot linearly?"
 cosine_with_retrieval(query)
