@@ -3,7 +3,6 @@ from transformers import AutoTokenizer, AutoModel
 from sklearn.metrics.pairwise import cosine_similarity
 import torch
 
-# Initialize the retriever
 
 #retriever_method = "bm25"  
 retriever_method = "tfidf"
@@ -74,13 +73,14 @@ def cosine_with_retrieval(query):
 
     # Print sorted results
     for rank, (i, ctx, score) in enumerate(context_scores, 1):
-        print(f"Context {rank} (Original Index {i+1})")
-        print(f"Cosine Similarity: {score * 100:.2f} %")
-        print(f"Context: {ctx}")
+        if score >= 0.7500:
+            print(f"Context {rank} (Original Index {i+1})")
+            print(f"Cosine Similarity: {score * 100:.2f} %")
+            print(f"Context: {ctx}")
 
 
 def manually_test(query):
-    context_for_test = "Calibration No Pos Update Trust Revolution Counter Revolution Counter Lost Updated the value of the parameter Server Type FTP Client Communication I/O Network added to topic Communication: Enable on I/O Network Minor corrections in section Manipulator supervision K Released with RobotWare 7.7 Added the Type Move in Auto Added new action value for system parameter Action Verify Move Robot In Auto Added the new parameter Fast Device Startup Moved Type System Input Type System Output I/O System Controller Updated the Prerequisites Type System Input Updated the parameter Brake on Time Added limitation for number of instances of the types Robot Single Robot Information about Cross Connections removed from section Topic I/O System Reference added to Application Manual I/O Engineering."
+    context_for_test = "('af4bdc14-2624-4810-849d-2a69770a2c46', SEMISTATIC task A SEMISTATIC task gets restarted from the beginning whenever the power is turned on. A SEMISTATIC task will also initiate the restart sequence, reload modules specified in the system parameters if the module file is newer than the loaded module. Station Viewer It can playback a station in 3D without RobotStudio. It packages the station file together with the files needed to view the station in 3D. It can also play recorded simulations. Simit SIMIT is a simulation platform from Siemens for virtual commissioning of factory automation. Symbol A signal is identified by this name in SIMIT. T Tool A tool is an object that can be mounted directly or indirectly on the robot turning. Tooldata A tool is represented with a variable of the data type tooldata Tool Centre Point (TCP) Refers to the point in relation to which robot's positioning is defined. It is the center point of the tool coordinate system that defines the position and orientation of the tool. TCP has its zero position at the center point of the tool. The tool center point also constitutes the origin of the tool coordinate system. Robot system can handle a number of TCP definitions, but only one can be active. Task A task is an activity or piece of work. RobotStudio tasks are either Normal, Static or Semistatic. Task frame Represents the origin of the robot controller world coordinate system in RobotStudio. Track motion A mechanism consisting of a linear axis with a carriage on which the robot is mounted. The track motion is used to give the robot improved reachability while working with large work pieces. Target Target signifies the position to which the robot is programmed to move. It is a RobotStudio object that contains the position and orientation of the point that the robot must reach. Position data is used to define the position in the move instructions to which the robot and additional axes will move. As the robot is able to achieve the same position in several different ways, the axis configuration is also specified. Target object contains values that shows position of the robot, orientation of the tool, axis configuration of the robot and position of the additional logical axes.', 0.06953206448380607)"
     query_embedding = normalize(encode([query]))
     context_embedding = normalize(encode([context_for_test]))
 
@@ -90,17 +90,17 @@ def manually_test(query):
     print(f"Context: {context_for_test}")
 
 
-'''
+
 # Cosine with retriever
 query = "How do I move a robot linearly?"
 cosine_with_retrieval(query)
+
+
 '''
-
-
 # Manually test the cosine similarity function
 query = "How do I move a robot linearly?"
 manually_test(query)
-
+'''
 
 
 
