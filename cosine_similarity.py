@@ -10,7 +10,7 @@ db_path = "token_semantic_chunk_mxbai_large"
 retriever = Retriever(db_path=db_path, collection_name="langchain", method=retriever_method)
 
 # Use base transformer model
-model_name = "mixedbread-ai/mxbai-embed-large-v1"
+model_name = "bert-base-cased"
 tokenizer = AutoTokenizer.from_pretrained(model_name)
 model = AutoModel.from_pretrained(model_name)
 
