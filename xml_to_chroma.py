@@ -21,13 +21,28 @@ def extract_text_from_xml(file_path):
     return "\n".join(text_parts)
 
 
+def extract_text_with_tags(file_path):
+    tree = ET.parse(file_path)
+    root = tree.getroot()
+    text_parts = []
+
+    for elem in root.iter():
+        tag = elem.tag.lower()
+        if elem.text and elem.text.strip():
+            if tag in ["section", "table", "title"]:
+                # Insert pseudo-label
+                text_parts.append(f"{tag.capitalize()}: {elem.text.strip()}")
+            else:
+                text_parts.append(elem.text.strip())
+
+    return "\n".join(text_parts)
+
+
 def clean_text(text):
     # Normalize quotes and dashes
     text = text.replace('“', '"').replace('”', '"').replace('’', "'")
     text = text.replace('–', '-').replace('—', '-')
 
-    # Remove any remaining XML tags
-    text = re.sub(r'<[^>]+>', '', text)
 
     # Remove any remaining special characters
     re.sub(r'[^\w\s.,!?\'\":;\-\(\)]', '', text)
@@ -108,10 +123,10 @@ def token_semantic_chunk(text, max_tokens=512):
 
 
 if __name__ == "__main__":
-    xml_file_3HAC032104 = "C:/Users/SEEDSAB/Desktop/files/3HAC032104 OM RobotStudio_a631_en/index.xml"
-    xml_file_3HAC065038 = "C:/Users/SEEDSAB/Desktop/files/3HAC065038 TRM RAPID RW 7_a631_en/index.xml"
-    xml_file_3HAC065040 = "C:/Users/SEEDSAB/Desktop/files/3HAC065040 RAPID Overview RW 7_a631_en/index.xml"
-    xml_file_3HAC065041 = "C:/Users/SEEDSAB/Desktop/files/3HAC065041 TRM System parameters RW 7_a631_en/index.xml"
+    xml_file_3HAC032104 = "Data\\RobotStudio\\index.xml"
+    xml_file_3HAC065038 = "Data\\RAPID_RW\\index.xml"
+    xml_file_3HAC065040 = "Data\\RAPID_overview\\index.xml"
+    xml_file_3HAC065041 = "Data\\system_parameters_rw\\index.xml"
     xml_files = [
         xml_file_3HAC032104,
         xml_file_3HAC065038,
@@ -124,8 +139,17 @@ if __name__ == "__main__":
     for file_path in tqdm(xml_files):
         raw_text = extract_text_from_xml(file_path)
         cleaned_text = clean_text(raw_text)
-        chunks = token_semantic_chunk(cleaned_text, max_tokens=512)
+        chunks = semantic_chunking(cleaned_text, chunk_size=1600, overlap=100)
+        print("Chunking with semantic chunking")
+        print(f"File: {file_path.split('\\)[-2]')}")
+        print(f"Total chunks: {len(chunks)}")
+        vector_store = Chroma(embedding_function=embed_model, persist_directory="./chroma_semantic_chunk_mxbai_large")
+        vector_store.add_texts(chunks)
 
+        raw_text_tags = extract_text_with_tags(file_path)
+        cleaned_text_tags = clean_text(raw_text_tags)
+        chunks = token_semantic_chunk(cleaned_text, max_tokens=512)
+        print("Chunking with token semantic chunking")
         print(f"File: {file_path.split('\\)[-2]')}")
         print(f"Total chunks: {len(chunks)}")
         
